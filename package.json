@@ -1,0 +1,29 @@
+{
+  "name": "react-chat-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon --exec ./node_modules/.bin/babel-node src/index.js"
+  },
+  "author": "Vekaltor",
+  "license": "ISC",
+  "dependencies": {
+    "@hapi/joi": "^17.1.1",
+    "bcrypt": "^5.1.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "i18next": "^22.4.10",
+    "i18next-fs-backend": "^2.1.1",
+    "i18next-http-middleware": "^3.2.2",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^6.9.3"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.21.0",
+    "@babel/core": "^7.21.0",
+    "@babel/node": "^7.20.7",
+    "@babel/preset-env": "^7.20.2"
+  }
+}

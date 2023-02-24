@@ -1,0 +1,16 @@
+{
+  "ERR_MIN": "length must be at least 6 characters long",
+  "ERR_MAX": "length must be less than or equal to 50 characters long",
+  "ERR_REQUIRED": "this field is required",
+  "ERR_EMAIL": "must be a valid email",
+  "ERR_MIN_PASS": "length must be at least 8 characters long",
+  "ERR_PATTERN_PASS": "the password should contain a capital letter, a special character [!@#$%.] and a number",
+  "ERR_CONFIRM_PASS": "must match password",
+
+  "REGISTER_SUCCESS": "user registered successfully",
+  "LOGIN_SUCCESS": "login successfull",
+  "ERR_INVALID_LOGIN": "email or password is incorrect",
+  "EMAIL_EXISTS": "this email is busy",
+
+  "ERR_CODE_500": "something went wrong..."
+}

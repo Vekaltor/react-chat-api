@@ -1,0 +1,16 @@
+{
+  "ERR_MIN": "długość musi wynosić co najmniej 6 znaków",
+  "ERR_MAX": "długość musi być mniejsza lub równa 50 znakom",
+  "ERR_REQUIRED": "to pole jest wymagane",
+  "ERR_EMAIL": "email jest niepoprawny",
+  "ERR_MIN_PASS": "długość musi wynosić co najmniej 8 znaków",
+  "ERR_PATTERN_PASS": "hasło powinno zawierać dużą litere, znak specjalny [!@#$%.] oraz cyfrę",
+  "ERR_CONFIRM_PASS": "hasła muszą być takie same",
+
+  "ERR_INVALID_LOGIN": "złe hasło lub email",
+  "LOGIN_SUCCESS": "login successfull",
+  "REGISTER_SUCCESS": "pomyślnie zarejestrowano konto użytkownika",
+  "EMAIL_EXISTS": "ten email jest zajęty",
+
+  "ERR_CODE_500": "Coś poszło nie tak..."
+}
