@@ -16,5 +16,4 @@ package-lock.json
 .env.production.local
 
 
-.babelrc
 .env
