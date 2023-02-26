@@ -13,6 +13,10 @@ class AuthController {
   register = (req, res, next) => {
     tryCatch(this.service.register(req, res, next));
   };
+
+  refreshToken = (req, res, next) => {
+    tryCatch(this.service.refreshToken(req, res, next));
+  };
 }
 
 export default new AuthController();

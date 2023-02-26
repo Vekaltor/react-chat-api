@@ -1,5 +1,4 @@
 {
-  "ERR_MIN": "length must be at least 6 characters long",
   "ERR_MAX": "length must be less than or equal to 50 characters long",
   "ERR_REQUIRED": "this field is required",
   "ERR_EMAIL": "must be a valid email",
@@ -12,5 +11,7 @@
   "ERR_INVALID_LOGIN": "email or password is incorrect",
   "EMAIL_EXISTS": "this email is busy",
 
-  "ERR_CODE_500": "something went wrong..."
+  "INTERNAL_SERVER_EXCEPTION": "something went wrong...",
+  "FORBIDDEN_EXCEPTION": "access denied",
+  "UNAUTHORIZED_EXCEPTION": "unathorized access"
 }

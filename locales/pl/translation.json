@@ -1,5 +1,4 @@
 {
-  "ERR_MIN": "długość musi wynosić co najmniej 6 znaków",
   "ERR_MAX": "długość musi być mniejsza lub równa 50 znakom",
   "ERR_REQUIRED": "to pole jest wymagane",
   "ERR_EMAIL": "email jest niepoprawny",
@@ -12,5 +11,7 @@
   "REGISTER_SUCCESS": "pomyślnie zarejestrowano konto użytkownika",
   "EMAIL_EXISTS": "ten email jest zajęty",
 
-  "ERR_CODE_500": "Coś poszło nie tak..."
+  "INTERNAL_SERVER_EXCEPTION": "coś poszło nie tak...",
+  "FORBIDDEN_EXCEPTION": "odmowa dostępu",
+  "UNAUTHORIZED_EXCEPTION": "nieautoryzowany dostęp"
 }

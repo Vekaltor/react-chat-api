@@ -1,16 +1,18 @@
 import jwt from "jsonwebtoken";
+import ForbiddenException from "../exceptions/ForbiddenException";
+import UnauthorizedException from "../exceptions/UnauthorizedException";
 
 const verifyToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = req.cookies.JWT;
 
-  if (token == null) return res.status(401).send({ message: "Unauthorized" });
+  if (token == null) throw new UnauthorizedException();
 
-  jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
-    if (err) return res.status(403).send({ message: "Forbidden" });
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) throw new ForbiddenException();
 
     req.user = user;
-
     next();
   });
 };
+
+export default verifyToken;

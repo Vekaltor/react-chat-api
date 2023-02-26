@@ -4,10 +4,14 @@ import bcrypt from "bcrypt";
 import UserService from "./userService";
 import { registerValidation, loginValidation } from "../utils/validation";
 import ValidationException from "../exceptions/ValidationException";
-
+import InternalServerException from "../exceptions/InternalServerException";
+import LoginErrorException from "../exceptions/LoginErrorException";
+import UnauthorizedException from "../exceptions/UnauthorizedException";
+import ForbiddenException from "../exceptions/ForbiddenException";
 class AuthService {
   constructor() {
     this.userService = new UserService();
+    this.tokenExpiresIn = 86400;
   }
 
   async login(req, res, next) {
@@ -16,36 +20,59 @@ class AuthService {
 
     try {
       if (error) throw new ValidationException(error.details[0].message);
-      User.findOne({ email: email }).exec((err, user) => {
-        if (err) {
-          return res.status(500).send({ message: req.t("ERR_CODE_500") });
-        }
-        if (!user) {
-          return res.status(401).send({ message: req.t("Unauthorized") });
-        }
-        const isValidPassword = bcrypt.compare(pass, user.pass);
-        if (!isValidPassword) {
-          return res
-            .status(401)
-            .send({ accessToken: null, message: "Unauthorized" });
-        }
-        const token = this.createJWT(user);
+      User.findOne({ email: email }).exec(async (err, user) => {
+        try {
+          if (err) throw new InternalServerException();
+          if (!user) throw new LoginErrorException();
 
-        res.status(200).send({
-          user: {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            surname: user.surname,
-          },
-          message: req.t("LOGIN_SUCCESS"),
-          accessToken: token,
-        });
+          const isValidPassword = await bcrypt.compare(pass, user.pass);
+          if (!isValidPassword) throw new LoginErrorException();
+
+          const accessToken = this.#createToken(user, 10);
+          const refreshToken = this.#createToken(user, 525600);
+
+          this.userService.modifyUser(user.id, {
+            refreshToken: refreshToken,
+          });
+
+          res.cookie("JWT", accessToken, {
+            maxAge: this.tokenExpiresIn * 1000,
+            httpOnly: true,
+          });
+
+          return res.status(200).send({
+            user: {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              surname: user.surname,
+            },
+            message: req.t("LOGIN_SUCCESS"),
+          });
+        } catch (error) {
+          next(error);
+        }
       });
     } catch (error) {
       next(error);
     }
   }
+
+  refreshToken = (req, res) => {
+    const refreshToken = req.body.accessToken;
+    const user = req.body.user;
+
+    if (!refreshToken) throw new UnauthorizedException();
+
+    try {
+      jwt.verify(refreshToken, process.env.JWT_SECRET);
+    } catch (error) {
+      throw new ForbiddenException();
+    }
+
+    const accessToken = this.#createToken(user);
+    return res.send({ accessToken });
+  };
 
   register = async (req, res, next) => {
     const { body } = req;
@@ -60,13 +87,13 @@ class AuthService {
     }
   };
 
-  createJWT = (user) => {
+  #createToken = (user, expiresIn = this.tokenExpiresIn) => {
     return jwt.sign(
       {
-        id: user.id,
+        id: user._id,
       },
       process.env.JWT_SECRET,
-      { expiresIn: 86400 }
+      { expiresIn }
     );
   };
 }

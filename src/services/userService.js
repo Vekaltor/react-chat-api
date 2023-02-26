@@ -15,19 +15,20 @@ class UserService {
       pass: hashedPassword,
     });
 
-    if (this.isEmailBusy(email)) throw new EmailBusyException();
+    if (await this.#isEmailBusy(email)) throw new EmailBusyException();
     else await savedUser.save();
   };
 
-  isEmailBusy = async (email) =>
-    (await User.findOne({ email })) ? true : false;
-
-  getUser = async (id) => {
-    await User.findById(id);
+  #isEmailBusy = async (email) => {
+    return (await User.findOne({ email })) ? true : false;
   };
 
-  getUsers = async () => {
-    await User.find();
+  getUser = async (id) => await User.findById(id);
+
+  getUsers = async () => await User.find();
+
+  modifyUser = async (id, update, options = {}) => {
+    await User.updateOne({ _id: id }, update, options);
   };
 }
 

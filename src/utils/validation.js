@@ -4,13 +4,11 @@ import Joi from "@hapi/joi";
 const errors = (translator) => {
   return {
     name: {
-      "string.min": translator("ERR_MIN"),
       "string.max": translator("ERR_MAX"),
       "string.empty": translator("ERR_REQUIRED"),
       "any.required": translator("ERR_REQUIRED"),
     },
     surname: {
-      "string.min": translator("ERR_MIN"),
       "string.max": translator("ERR_MAX"),
       "string.empty": translator("ERR_REQUIRED"),
       "any.required": translator("ERR_REQUIRED"),
@@ -31,7 +29,7 @@ const errors = (translator) => {
 
 //Register validation
 const registerValidation = (data, translator) => {
-  let defaultValidString = Joi.string().required().min(6).max(50);
+  let defaultValidString = Joi.string().required().max(50);
   let patternPass = RegExp(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%.]).*$/);
 
   const registerSchema = Joi.object({

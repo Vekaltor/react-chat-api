@@ -1,6 +1,3 @@
-import { config } from "dotenv";
-config();
-
 //MONGOOSE
 const DB = {
   options: {

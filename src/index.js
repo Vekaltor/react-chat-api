@@ -1,5 +1,4 @@
-import { config } from "dotenv";
-config();
+import "./config/env";
 import express, { json } from "express";
 import { set, connect } from "mongoose";
 import DB from "./config/database";
@@ -7,9 +6,11 @@ import i18next, { use } from "i18next";
 import Backend from "i18next-fs-backend";
 import { LanguageDetector, handle } from "i18next-http-middleware";
 import errorHandler from "./middlewares/errorHandler";
+import cookieParser from "cookie-parser";
 
 //Imports Routes
 import authentication from "./routes/auth";
+import secret from "./routes/secret";
 
 use(Backend)
   .use(LanguageDetector)
@@ -27,10 +28,13 @@ connect(process.env.DB_CONNECT, DB.options).then(
 );
 
 const app = express();
+
 app.use(handle(i18next));
 app.use(json());
+app.use(cookieParser());
 
 app.use("/api", authentication());
+app.use("/api", secret());
 
 app.use(errorHandler);
 

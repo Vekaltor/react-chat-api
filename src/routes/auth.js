@@ -1,6 +1,5 @@
 import { Router } from "express";
 import AuthController from "../controllers/authController";
-import tryCatch from "../utils/tryCatch";
 
 export default () => {
   const api = Router();
@@ -10,6 +9,8 @@ export default () => {
 
   //POST /login
   api.post("/login", AuthController.login);
+
+  api.post("/refresh", AuthController.refreshToken);
 
   return api;
 };
