@@ -11,6 +11,7 @@ import cookieParser from "cookie-parser";
 //Imports Routes
 import authentication from "./routes/auth";
 import secret from "./routes/secret";
+import user from "./routes/user";
 
 use(Backend)
   .use(LanguageDetector)
@@ -35,6 +36,7 @@ app.use(cookieParser());
 
 app.use("/api", authentication());
 app.use("/api", secret());
+app.use("/api", user());
 
 app.use(errorHandler);
 

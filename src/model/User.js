@@ -10,16 +10,11 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    email: {
-      type: String,
-      unique: true,
-      required: true,
-    },
     pass: {
       type: String,
       required: true,
     },
-    refreshToken: {
+    refresh_token: {
       type: String,
     },
     role: {
@@ -27,9 +22,31 @@ const userSchema = new Schema(
       enum: ["normal", "admin"],
       default: "normal",
     },
-    created: {
+    created_at: {
       type: Date,
       default: Date.now(),
+    },
+    profile_photo: {
+      type: String,
+    },
+    contact: {
+      primary_email: {
+        type: String,
+        unique: true,
+        required: true,
+      },
+      secondary_email: {
+        type: String,
+      },
+      country: {
+        type: String,
+      },
+      city: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
     },
   },
   {

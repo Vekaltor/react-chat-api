@@ -17,10 +17,10 @@ class AuthService {
   async login(req, res, next) {
     const { email, pass } = req.body;
     const { error } = loginValidation(req.body, req.t);
-
+    const filter = { contact: { primary_email: email } };
     try {
       if (error) throw new ValidationException(error.details[0].message);
-      User.findOne({ email: email }).exec(async (err, user) => {
+      User.findOne(filter).exec(async (err, user) => {
         try {
           if (err) throw new InternalServerException();
           if (!user) throw new LoginErrorException();
@@ -28,15 +28,15 @@ class AuthService {
           const isValidPassword = await bcrypt.compare(pass, user.pass);
           if (!isValidPassword) throw new LoginErrorException();
 
-          const accessToken = this.#createToken(user, 10);
+          const accessToken = this.#createToken(user);
           const refreshToken = this.#createToken(user, 525600);
 
           this.userService.modifyUser(user.id, {
-            refreshToken: refreshToken,
+            refresh_token: refreshToken,
           });
 
           res.cookie("JWT", accessToken, {
-            maxAge: this.tokenExpiresIn * 1000,
+            maxAge: 20 * 1000,
             httpOnly: true,
           });
 
@@ -59,7 +59,7 @@ class AuthService {
   }
 
   refreshToken = (req, res) => {
-    const refreshToken = req.body.accessToken;
+    const refreshToken = req.body.user.refresh_token;
     const user = req.body.user;
 
     if (!refreshToken) throw new UnauthorizedException();
@@ -71,16 +71,20 @@ class AuthService {
     }
 
     const accessToken = this.#createToken(user);
-    return res.send({ accessToken });
+    res.cookie("JWT", accessToken, {
+      maxAge: this.tokenExpiresIn * 1000,
+      httpOnly: true,
+    });
+    return res.send({ access_token: accessToken });
   };
 
   register = async (req, res, next) => {
     const { body } = req;
-    const { error } = registerValidation(req.body, req.t);
+    const { error } = registerValidation(body, req.t);
 
     try {
       if (error) throw new ValidationException(error.details[0].message);
-      await this.userService.create(body);
+      await this.userService.addUser(body);
       return res.status(201).send({ message: req.t("REGISTER_SUCCESS") });
     } catch (error) {
       next(error);
@@ -90,7 +94,7 @@ class AuthService {
   #createToken = (user, expiresIn = this.tokenExpiresIn) => {
     return jwt.sign(
       {
-        id: user._id,
+        id: user.id,
       },
       process.env.JWT_SECRET,
       { expiresIn }

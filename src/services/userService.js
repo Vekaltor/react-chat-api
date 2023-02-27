@@ -3,29 +3,51 @@ import bcrypt from "bcrypt";
 import EmailBusyException from "../exceptions/EmailBusyException";
 
 class UserService {
-  create = async (body) => {
+  addUser = async (body) => {
     const { name, surname, email, pass } = body;
     let salt = parseInt(process.env.BCRYPT_SALT);
-    let hashedPassword = await bcrypt.hash(pass, salt);
+    const hashedPassword = await bcrypt.hash(pass, salt);
 
-    const savedUser = new User({
-      name: name,
-      surname: surname,
-      email: email,
-      pass: hashedPassword,
-    });
+    let isBusyEmail = await this.#isEmailBusy(email);
 
-    if (await this.#isEmailBusy(email)) throw new EmailBusyException();
-    else await savedUser.save();
+    if (!isBusyEmail) {
+      const savedUser = new User({
+        name: name,
+        surname: surname,
+        contact: { primary_email: email },
+        pass: hashedPassword,
+      });
+      await savedUser.save();
+    } else throw new EmailBusyException();
   };
 
   #isEmailBusy = async (email) => {
-    return (await User.findOne({ email })) ? true : false;
+    return (await User.findOne({ contact: { primary_email: email } }))
+      ? true
+      : false;
   };
 
-  getUser = async (id) => await User.findById(id);
+  getUserById = async (id) => {
+    await User.findById(id)
+      .select("name surname role created_at contact")
+      .then((doc) => {
+        res.status(200).send({
+          user: doc,
+        });
+      });
+  };
 
-  getUsers = async () => await User.find();
+  getAllUsers = async (req, res) => {
+    await User.find()
+      .select("name surname role created_at contact")
+      .exec()
+      .then((docs) => {
+        res.status(200).send({
+          count: docs.length,
+          users: [...docs],
+        });
+      });
+  };
 
   modifyUser = async (id, update, options = {}) => {
     await User.updateOne({ _id: id }, update, options);

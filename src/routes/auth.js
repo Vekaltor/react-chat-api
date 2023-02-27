@@ -10,6 +10,7 @@ export default () => {
   //POST /login
   api.post("/login", AuthController.login);
 
+  //POST /refresh
   api.post("/refresh", AuthController.refreshToken);
 
   return api;

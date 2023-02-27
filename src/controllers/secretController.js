@@ -1,5 +1,3 @@
-import tryCatch from "../utils/tryCatch";
-
 const data = [
   { id: 0, name: "dupa", surname: "sraka" },
   { id: 1, name: "dupa2", surname: "sraka2" },
@@ -11,8 +9,8 @@ const data = [
 
 class SecretController {
   constructor() {}
-  async getData(req, res, next) {
-    return await res.status(200).send(data);
+  getData(req, res, next) {
+    return res.status(200).send(data);
   }
 }
 
