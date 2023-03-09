@@ -5,6 +5,14 @@ const conversationSchema = new Schema(
     conversationName: {
       type: String,
     },
+    options: {
+      thema: {
+        type: String,
+      },
+      emoji: {
+        type: String,
+      },
+    },
   },
   {
     collection: "conversations",

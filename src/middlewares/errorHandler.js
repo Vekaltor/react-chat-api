@@ -1,9 +1,9 @@
 const errorHandler = (error, req, res, next) => {
   const errorMessageTranslated = req.t(error.message);
-
   res.status(error.status || 500);
   res.json({
     error: {
+      type: error.type,
       code: error.status,
       message: errorMessageTranslated,
     },

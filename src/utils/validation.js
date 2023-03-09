@@ -1,5 +1,6 @@
 // const Joi = require("@hapi/joi");
 import Joi from "@hapi/joi";
+import UserService from "../services/userService";
 
 const errors = (translator) => {
   return {
@@ -31,7 +32,7 @@ const errors = (translator) => {
 const registerValidation = (data, translator) => {
   let defaultValidString = Joi.string().required().max(50);
   let patternPass = RegExp(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%.]).*$/);
-
+  const userService = new UserService();
   const registerSchema = Joi.object({
     name: defaultValidString.messages(errors(translator).name),
     surname: defaultValidString.messages(errors(translator).surname),
@@ -42,7 +43,7 @@ const registerValidation = (data, translator) => {
       .regex(patternPass)
       .messages(errors(translator).pass),
   });
-  return registerSchema.validate(data);
+  return registerSchema.validateAsync(data);
 };
 
 //Login validation
@@ -51,6 +52,7 @@ const loginValidation = (data, translator) => {
     email: Joi.string().required().messages(errors(translator).email),
     pass: Joi.string().required().messages(errors(translator).pass),
   });
+
   return loginSchema.validate(data);
 };
 

@@ -8,6 +8,10 @@ class UserController {
   getAllUsers = (req, res, next) => {
     tryCatch(this.service.getAllUsers(req, res, next));
   };
+
+  existsUser = (req, res, next) => {
+    tryCatch(this.service.existsUser(req, res, next));
+  };
 }
 
 export default new UserController();

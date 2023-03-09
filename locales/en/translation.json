@@ -6,12 +6,14 @@
   "ERR_PATTERN_PASS": "the password should contain a capital letter, a special character [!@#$%.] and a number",
   "ERR_CONFIRM_PASS": "must match password",
 
-  "REGISTER_SUCCESS": "user registered successfully",
+  "REGISTER_SUCCESS": "User registered successfully. An Email sent to your account please verify",
   "LOGIN_SUCCESS": "login successfull",
   "ERR_INVALID_LOGIN": "email or password is incorrect",
-  "EMAIL_EXISTS": "this email is busy",
+  "EMAIL_EXISTS": "User with this email already exists",
 
   "INTERNAL_SERVER_EXCEPTION": "something went wrong...",
   "FORBIDDEN_EXCEPTION": "access denied",
-  "UNAUTHORIZED_EXCEPTION": "unathorized access"
+  "UNAUTHORIZED_EXCEPTION": "unathorized access",
+  "ACC_NOT_VERIFIED_EXCEPTION": "your Email has not been verified",
+  "INVALID_LINK_VERIFY_MAIL_EXCEPTION": "invalid link to verify account"
 }

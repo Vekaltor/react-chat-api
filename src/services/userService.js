@@ -18,6 +18,7 @@ class UserService {
         pass: hashedPassword,
       });
       await savedUser.save();
+      return savedUser;
     } else throw new EmailBusyException();
   };
 
@@ -27,18 +28,33 @@ class UserService {
       : false;
   };
 
+  existsUser = async (email) => {
+    let isExists = await this.#isEmailBusy(email);
+    if (isExists) {
+      throw new EmailBusyException();
+    }
+    return isExists;
+  };
+
   getUserById = async (id) => {
-    await User.findById(id)
-      .select("name surname role created_at contact")
-      .then((doc) => {
-        res.status(200).send({
-          user: doc,
-        });
-      });
+    return await User.findById(id).select(
+      "name surname role created_at contact"
+    );
+    // .then((doc) => {
+    //   res.status(200).send({
+    //     user: doc,
+    //   });
+    // });
+  };
+
+  getUserByFilter = (filter, callback) => {
+    return User.findOne(filter).exec((err, user) => {
+      if (callback) callback(err, user);
+    });
   };
 
   getAllUsers = async (req, res) => {
-    await User.find()
+    return await User.find()
       .select("name surname role created_at contact")
       .exec()
       .then((docs) => {

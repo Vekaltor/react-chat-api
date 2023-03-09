@@ -1,18 +1,24 @@
-import User from "../model/User";
+import UserService from "./userService";
+import NodemailerService from "./nodemailerService";
+
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import UserService from "./userService";
 import { registerValidation, loginValidation } from "../utils/validation";
+
 import ValidationException from "../exceptions/ValidationException";
 import InternalServerException from "../exceptions/InternalServerException";
 import LoginErrorException from "../exceptions/LoginErrorException";
 import UnauthorizedException from "../exceptions/UnauthorizedException";
 import ForbiddenException from "../exceptions/ForbiddenException";
+import AccountNotVerifiedException from "../exceptions/AccountNotVerifiedException";
+import InvalidLinkVerifyMailException from "../exceptions/InvalidLinkVerifyMailException";
+import { type } from "../utils/responseTypes";
+
 class AuthService {
-  constructor() {
-    this.userService = new UserService();
-    this.tokenExpiresIn = 86400;
-  }
+  #accessTokenExpiresIn = 86400;
+  #refreshTokenExpiresIn = 525600;
+  #userSerivce = new UserService();
+  #nodemailerService = new NodemailerService();
 
   async login(req, res, next) {
     const { email, pass } = req.body;
@@ -20,7 +26,7 @@ class AuthService {
     const filter = { contact: { primary_email: email } };
     try {
       if (error) throw new ValidationException(error.details[0].message);
-      User.findOne(filter).exec(async (err, user) => {
+      this.#userSerivce.getUserByFilter(filter, async (err, user) => {
         try {
           if (err) throw new InternalServerException();
           if (!user) throw new LoginErrorException();
@@ -28,26 +34,39 @@ class AuthService {
           const isValidPassword = await bcrypt.compare(pass, user.pass);
           if (!isValidPassword) throw new LoginErrorException();
 
-          const accessToken = this.#createToken(user);
-          const refreshToken = this.#createToken(user, 525600);
+          if (!user.details.is_verified)
+            throw new AccountNotVerifiedException();
 
-          this.userService.modifyUser(user.id, {
-            refresh_token: refreshToken,
-          });
+          const accessToken = this.#createToken(user._id);
+          const refreshToken = this.#createToken(
+            user._id,
+            this.#refreshTokenExpiresIn
+          );
 
-          res.cookie("JWT", accessToken, {
-            maxAge: 20 * 1000,
-            httpOnly: true,
-          });
+          res
+            .cookie("refreshToken", refreshToken, {
+              maxAge: this.#refreshTokenExpiresIn * 1000,
+              httpOnly: true,
+              sameSite: "strict",
+              secure: true,
+              path: "/refresh",
+            })
+            .cookie("accessToken", accessToken, {
+              maxAge: this.#accessTokenExpiresIn * 1000,
+              sameSite: "strict",
+              path: "/",
+            });
 
           return res.status(200).send({
             user: {
               id: user.id,
-              email: user.email,
               name: user.name,
               surname: user.surname,
+              details: user.details,
+              contact: user.contact,
             },
             message: req.t("LOGIN_SUCCESS"),
+            type: type.SUCCESS,
           });
         } catch (error) {
           next(error);
@@ -58,43 +77,106 @@ class AuthService {
     }
   }
 
+  logout = (req, res) => {
+    try {
+      res
+        .clearCookie("refreshToken", { path: "/refresh" })
+        .clearCookie("accessToken")
+        .status(200)
+        .send({ message: "Logout Success", type: type.SUCCESS });
+    } catch (error) {
+      throw new InternalServerException();
+    }
+  };
+
   refreshToken = (req, res) => {
-    const refreshToken = req.body.user.refresh_token;
-    const user = req.body.user;
+    const refreshToken = req.cookies["refreshToken"];
 
     if (!refreshToken) throw new UnauthorizedException();
 
     try {
-      jwt.verify(refreshToken, process.env.JWT_SECRET);
+      const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+      const userId = decoded.idUser;
+
+      const newAccessToken = this.#createToken(userId);
+      const newRefreshToken = this.#createToken(
+        userId,
+        this.#refreshTokenExpiresIn
+      );
+
+      res
+        .cookie("refreshToken", newRefreshToken, {
+          maxAge: this.#refreshTokenExpiresIn * 1000,
+          httpOnly: true,
+          sameSite: "strict",
+          secure: true,
+          path: "/refresh",
+        })
+        .cookie("accessToken", newAccessToken, {
+          maxAge: this.#accessTokenExpiresIn * 1000,
+          sameSite: "strict",
+          path: "/",
+        });
+
+      return res.send({
+        message: "Refreshed access token !",
+      });
     } catch (error) {
       throw new ForbiddenException();
     }
-
-    const accessToken = this.#createToken(user);
-    res.cookie("JWT", accessToken, {
-      maxAge: this.tokenExpiresIn * 1000,
-      httpOnly: true,
-    });
-    return res.send({ access_token: accessToken });
   };
 
   register = async (req, res, next) => {
     const { body } = req;
     const { error } = registerValidation(body, req.t);
-
     try {
       if (error) throw new ValidationException(error.details[0].message);
-      await this.userService.addUser(body);
+
+      let user = await this.#userSerivce.addUser(body);
+      let token = await this.#nodemailerService.createToken(user._id);
+
+      const message = `<p>Thank you for registering int our application. Just one more steps ...</p><p>To activate your account please <b>follow</b> this link: </p><a target="_" href="${process.env.DOMAIN}/verify/${user._id}/${token.token}">Activate Link</a><p>Cheers,</p><p>Your application team</p>`;
+
+      this.#nodemailerService.sendConfirmationEmail(
+        body.email,
+        "Activate account",
+        message
+      );
+
       return res.status(201).send({ message: req.t("REGISTER_SUCCESS") });
     } catch (error) {
       next(error);
     }
   };
 
-  #createToken = (user, expiresIn = this.tokenExpiresIn) => {
+  activateAccount = async (req, res, next) => {
+    const { id, token } = req.params;
+    try {
+      const isUser = await this.#userSerivce.getUserById(id);
+      if (!isUser) throw new InvalidLinkVerifyMailException();
+
+      const isToken = await this.#nodemailerService.checkExistsToken(token);
+      if (!isToken) throw new InvalidLinkVerifyMailException();
+
+      await this.#userSerivce.modifyUser(id, {
+        details: { is_verified: true },
+      });
+      await this.#nodemailerService.removeToken(id);
+
+      res.status(200).send({
+        message: req.t(
+          `You have been succesfuly activated. You can login now!`
+        ),
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  #createToken = (idUser, expiresIn = this.#accessTokenExpiresIn) => {
     return jwt.sign(
       {
-        id: user.id,
+        idUser: idUser,
       },
       process.env.JWT_SECRET,
       { expiresIn }

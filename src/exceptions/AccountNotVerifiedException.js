@@ -1,11 +1,9 @@
 import { type } from "../utils/responseTypes";
 
-class UnauthorizedException {
+export default class AccountNotVerifiedException {
   constructor() {
     this.type = type.ERROR;
-    this.message = "UNAUTHORIZED_EXCEPTION";
     this.status = 401;
+    this.message = "ACC_NOT_VERIFIED_EXCEPTION";
   }
 }
-
-export default UnauthorizedException;

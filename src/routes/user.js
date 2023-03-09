@@ -6,7 +6,10 @@ export default () => {
   const api = express();
 
   //GET /users
-  api.get("/:userId", verifyToken, UserController.getAllUsers);
+  api.get("/users", verifyToken, UserController.getAllUsers);
+
+  //GET /exists
+  api.get("/exists", UserController.existsUser);
 
   return api;
 };

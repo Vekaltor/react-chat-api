@@ -1,6 +1,6 @@
 import { model, Schema } from "mongoose";
 
-const groupMemberSchema = new Schema(
+const conversationMemberSchema = new Schema(
   {
     id_conversation: {
       type: Schema.Types.ObjectId,
@@ -22,8 +22,8 @@ const groupMemberSchema = new Schema(
     },
   },
   {
-    collection: "group_members",
+    collection: "conversation_member",
   }
 );
 
-export default model("GroupMember", groupMemberSchema);
+export default model("ConversationMember", conversationMemberSchema);

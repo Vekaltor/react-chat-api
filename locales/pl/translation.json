@@ -8,10 +8,12 @@
 
   "ERR_INVALID_LOGIN": "złe hasło lub email",
   "LOGIN_SUCCESS": "login successfull",
-  "REGISTER_SUCCESS": "pomyślnie zarejestrowano konto użytkownika",
+  "REGISTER_SUCCESS": "Pomyślnie zarejestrowano konto użytkownika. E-mail został wysłany na Twoje konto, zweryfikuj klikając w link",
   "EMAIL_EXISTS": "ten email jest zajęty",
 
   "INTERNAL_SERVER_EXCEPTION": "coś poszło nie tak...",
   "FORBIDDEN_EXCEPTION": "odmowa dostępu",
-  "UNAUTHORIZED_EXCEPTION": "nieautoryzowany dostęp"
+  "UNAUTHORIZED_EXCEPTION": "nieautoryzowany dostęp",
+  "ACC_NOT_VERIFIED_EXCEPTION": "twój e-mail nie został zweryfikowany",
+  "INVALID_LINK_VERIFY_MAIL_EXCEPTION": "niepoprawny link do weryfikacji konta"
 }

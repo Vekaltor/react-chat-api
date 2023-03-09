@@ -7,6 +7,9 @@ import Backend from "i18next-fs-backend";
 import { LanguageDetector, handle } from "i18next-http-middleware";
 import errorHandler from "./middlewares/errorHandler";
 import cookieParser from "cookie-parser";
+import cors from "cors";
+import corsOptions from "./config/cors";
+// import io from "socket.io";
 
 //Imports Routes
 import authentication from "./routes/auth";
@@ -25,14 +28,27 @@ use(Backend)
 set("strictQuery", false);
 connect(process.env.DB_CONNECT, DB.options).then(
   () => console.log("connected"),
-  (err) => console.log("Not connected ", err)
+  (err) => {
+    console.log("Not connected ", err);
+    throw err;
+  }
 );
 
 const app = express();
+// io = io(app);
+
+// io.on("connection", (socket) => {
+//   console.log("a user connected");
+
+//   socket.on("disconnect", () => {
+//     console.log("a user disconnected");
+//   });
+// });
 
 app.use(handle(i18next));
 app.use(json());
 app.use(cookieParser());
+app.use(cors(corsOptions));
 
 app.use("/api", authentication());
 app.use("/api", secret());
