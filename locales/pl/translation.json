@@ -15,5 +15,6 @@
   "FORBIDDEN_EXCEPTION": "odmowa dostępu",
   "UNAUTHORIZED_EXCEPTION": "nieautoryzowany dostęp",
   "ACC_NOT_VERIFIED_EXCEPTION": "twój e-mail nie został zweryfikowany",
-  "INVALID_LINK_VERIFY_MAIL_EXCEPTION": "niepoprawny link do weryfikacji konta"
+  "INVALID_LINK_VERIFY_MAIL_EXCEPTION": "niepoprawny link do weryfikacji konta",
+  "FRIENDSHIP_EXISTS_EXCEPTION": "jesteście już znajomymi"
 }

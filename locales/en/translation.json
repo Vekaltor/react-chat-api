@@ -15,5 +15,6 @@
   "FORBIDDEN_EXCEPTION": "access denied",
   "UNAUTHORIZED_EXCEPTION": "unathorized access",
   "ACC_NOT_VERIFIED_EXCEPTION": "your Email has not been verified",
-  "INVALID_LINK_VERIFY_MAIL_EXCEPTION": "invalid link to verify account"
+  "INVALID_LINK_VERIFY_MAIL_EXCEPTION": "invalid link to verify account",
+  "FRIENDSHIP_EXISTS_EXCEPTION": "you are already friends"
 }

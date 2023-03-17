@@ -57,17 +57,22 @@ class AuthService {
               path: "/",
             });
 
-          return res.status(200).send({
-            user: {
-              id: user.id,
-              name: user.name,
-              surname: user.surname,
-              details: user.details,
-              contact: user.contact,
-            },
-            message: req.t("LOGIN_SUCCESS"),
-            type: type.SUCCESS,
-          });
+          return res
+            .status(200)
+            .cookie(
+              "user",
+              JSON.stringify({
+                id: user.id,
+                name: user.name,
+                surname: user.surname,
+                details: user.details,
+                contact: user.contact,
+              })
+            )
+            .send({
+              message: req.t("LOGIN_SUCCESS"),
+              type: type.SUCCESS,
+            });
         } catch (error) {
           next(error);
         }
@@ -82,6 +87,7 @@ class AuthService {
       res
         .clearCookie("refreshToken", { path: "/refresh" })
         .clearCookie("accessToken")
+        .clearCookie("user")
         .status(200)
         .send({ message: "Logout Success", type: type.SUCCESS });
     } catch (error) {

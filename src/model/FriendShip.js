@@ -12,10 +12,14 @@ const friendShipSchema = new Schema(
       ref: "User",
       required: true,
     },
+    is_accepted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
-    collection: "friend_ships",
+    collection: "friendships",
   }
 );
 
-export default model("FriendShip", friendShipSchema);
+export default model("Friendship", friendShipSchema);

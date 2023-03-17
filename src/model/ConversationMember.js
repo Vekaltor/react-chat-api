@@ -7,6 +7,11 @@ const conversationMemberSchema = new Schema(
       ref: "Conversation",
       required: true,
     },
+    id_user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     joined_date_time: {
       type: Date,
     },
@@ -22,7 +27,7 @@ const conversationMemberSchema = new Schema(
     },
   },
   {
-    collection: "conversation_member",
+    collection: "conversation_members",
   }
 );
 
