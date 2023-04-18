@@ -53,16 +53,16 @@ class UserService {
     });
   };
 
-  getAllUsers = async (req, res) => {
+  getAllUsers = async (req, res, next) => {
     return await User.find()
       .select("name surname role created_at contact")
-      .exec()
-      .then((docs) => {
+      .then((docs) =>
         res.status(200).send({
           count: docs.length,
           users: [...docs],
-        });
-      });
+        })
+      )
+      .catch((err) => next(err));
   };
 
   modifyUser = async (id, update, options = {}) => {
