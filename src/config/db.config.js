@@ -15,14 +15,13 @@ const DB = {
 };
 
 set("strictQuery", false);
-export const dbConnect = createConnection(
-  process.env.DB_CONNECT,
-  DB.options,
-  (err, db) => {
+const initConnectDB = () =>
+  createConnection(process.env.DB_CONNECT, DB.options, (err, db) => {
     !err
       ? console.log("MongoDB connected")
       : console.log("MongoDB not connected ", err);
 
     createViewMessagesPerConversation(db);
-  }
-);
+  });
+
+export default initConnectDB;
