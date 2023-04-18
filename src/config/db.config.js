@@ -1,3 +1,6 @@
+import { createConnection, set } from "mongoose";
+import { createViewMessagesPerConversation } from "./dbViews";
+
 //MONGOOSE
 const DB = {
   options: {
@@ -11,4 +14,15 @@ const DB = {
   },
 };
 
-export default DB;
+set("strictQuery", false);
+export const dbConnect = createConnection(
+  process.env.DB_CONNECT,
+  DB.options,
+  (err, db) => {
+    !err
+      ? console.log("MongoDB connected")
+      : console.log("MongoDB not connected ", err);
+
+    createViewMessagesPerConversation(db);
+  }
+);

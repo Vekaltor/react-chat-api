@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import NoDataToExecuteException from "../exceptions/NoDataToExecuteException";
 import Conversation from "../model/Conversation";
 import ConversationMemberService from "./conversationMemberService";
@@ -21,10 +22,18 @@ class ConversationService {
   async getConversationWithMembers(id, res, next) {
     try {
       let conversation = await Conversation.findOne({ id });
-      let members = this.memberService.getMembersByIdConversation(id);
+      let members = await this.memberService.getMembersByIdConversation(id);
       return res
         .status(200)
         .send({ message: "OPERATION_SUCCESS", conversation, members });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getConversationByMembers(members, res, next) {
+    try {
+      return await Conversation.find();
     } catch (error) {
       next(error);
     }

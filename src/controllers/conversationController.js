@@ -16,7 +16,7 @@ class ConversationController {
   };
 
   getConversationWithMembers = (req, res, next) => {
-    let idConversation = req.params.id;
+    let idConversation = req.query.id;
     tryCatch(
       this.conversationService.getConversationWithMembers(
         idConversation,

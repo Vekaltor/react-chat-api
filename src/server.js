@@ -1,7 +1,6 @@
 import "./config/env.config";
 import express, { json } from "express";
-import { set, connect } from "mongoose";
-import DB from "./config/db.config";
+import "./config/db.config";
 import i18next, { use } from "i18next";
 import Backend from "i18next-fs-backend";
 import { LanguageDetector, handle } from "i18next-http-middleware";
@@ -24,15 +23,6 @@ use(Backend)
       loadPath: "./locales/{{lng}}/translation.json",
     },
   });
-
-set("strictQuery", false);
-connect(process.env.DB_CONNECT, DB.options).then(
-  () => console.log("MongoDB connected"),
-  (err) => {
-    console.log("MongoDB not connected ", err);
-    throw err;
-  }
-);
 
 const app = express();
 

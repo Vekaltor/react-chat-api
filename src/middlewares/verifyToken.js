@@ -4,7 +4,6 @@ import UnauthorizedException from "../exceptions/UnauthorizedException";
 
 const verifyToken = (req, res, next) => {
   const token = req.cookies.accessToken;
-
   if (token == null) throw new UnauthorizedException();
 
   try {
