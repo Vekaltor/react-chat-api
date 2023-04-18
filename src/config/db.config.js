@@ -1,4 +1,4 @@
-import { connect, createConnection, set } from "mongoose";
+import { connect, set } from "mongoose";
 import { createViewMessagesPerConversation } from "./dbViews";
 
 //MONGOOSE

@@ -10,7 +10,6 @@ export class ServerSocket {
   constructor(server) {
     this.instance = this;
     this.users = [];
-    this.onlineUsers = [];
     this.io = new Server(server, {
       serveClient: false,
       pingInterval: 10000,
@@ -23,21 +22,38 @@ export class ServerSocket {
   }
 
   StartListeners = (socket) => {
-    socket.on("login", (userId) => {
+    socket.on("user-online", (userId) => {
       this.#addUser(userId, socket.id);
-      this.io.emit("get-users", this.users);
+      socket.broadcast.emit("friend-online", userId);
     });
 
     socket.on("disconnect", () => {
-      this.#removeUser(socket.id);
-      this.io.emit("get-users", this.users);
+      const user = this.#removeUser(socket.id);
+
+      if (user) {
+        socket.broadcast.emit("friend-offline", user.userId);
+      }
     });
 
-    socket.on("logout", () => {
-      this.#removeUser(socket.id);
-      this.io.emit("get-users", this.users);
+    socket.on("user-offline", () => {
+      const user = this.#removeUser(socket.id);
+
+      if (user) {
+        this.io.emit("friend-offline", user.userId);
+      }
+    });
+
+    socket.on("get-online-friends", (friendsList) => {
+      const onlineFriends = this.#getOnlineFriends(friendsList);
+      socket.emit("online-friends", onlineFriends);
     });
   };
+
+  #getOnlineFriends(friendsList) {
+    return this.users
+      .filter(({ userId }) => friendsList.includes(userId))
+      .map((onlineFriend) => onlineFriend.userId);
+  }
 
   #addUser(userId, socketId) {
     if (!this.users.some((user) => user.userId === userId))
@@ -45,6 +61,10 @@ export class ServerSocket {
   }
 
   #removeUser(socketId) {
+    const user = this.users.find((user) => user.socketId === socketId);
+    if (!user) return;
+
     this.users = this.users.filter((user) => user.socketId !== socketId);
+    return user;
   }
 }
