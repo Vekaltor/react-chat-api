@@ -3,11 +3,13 @@ import NoDataToExecuteException from "../exceptions/NoDataToExecuteException";
 import Conversation from "../model/Conversation";
 import ConversationMemberService from "./conversationMemberService";
 import MessageService from "./messageService";
+import { views } from "../config/dbViews";
 
 class ConversationService {
   constructor() {
     this.memberService = new ConversationMemberService();
     this.messageService = new MessageService();
+    this.DB = mongoose.connection;
   }
 
   async getConversations(req, res, next) {
@@ -23,14 +25,13 @@ class ConversationService {
 
   async getConversationWithMembersAndMessages(id, res, next) {
     try {
-      let conversation = await Conversation.findOne({ _id: id });
-      let members = await this.memberService.getMembersByIdConversation(id);
-      let messages = await this.messageService.getMessagesByConversation(id);
+      let conversation = await this.DB.collection(
+        views.MESSAGES_PER_CONVERSATION
+      ).findOne({ _id: id });
+
       return res.status(200).send({
         message: "OPERATION_SUCCESS",
         conversation,
-        members,
-        messages,
       });
     } catch (error) {
       next(error);
