@@ -20,7 +20,7 @@ export default () => {
   api.get(
     "/conversation",
     verifyToken,
-    ConversationController.getConversationWithMembers
+    ConversationController.getConversationWithMembersAndMessages
   );
 
   //GET /conversations

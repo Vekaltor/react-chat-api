@@ -15,10 +15,10 @@ class ConversationController {
     tryCatch(this.conversationService.createConversation(body, res, next));
   };
 
-  getConversationWithMembers = (req, res, next) => {
+  getConversationWithMembersAndMessages = (req, res, next) => {
     let idConversation = req.query.id;
     tryCatch(
-      this.conversationService.getConversationWithMembers(
+      this.conversationService.getConversationWithMembersAndMessages(
         idConversation,
         res,
         next
