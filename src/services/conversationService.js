@@ -23,15 +23,54 @@ class ConversationService {
     }
   }
 
+  async getIdByIdsFriendAndUser(ids, res, next) {
+    const { idUser, idFriend } = ids;
+    try {
+      let idConversation = await this.DB.collection(
+        views.MESSAGES_PER_CONVERSATION
+      )
+        .findOne({
+          type: "private",
+          $and: [
+            {
+              "members.id_user": {
+                $all: [
+                  mongoose.Types.ObjectId(idUser),
+                  mongoose.Types.ObjectId(idFriend),
+                ],
+              },
+            },
+            { members: { $size: 2 } },
+          ],
+        })
+        .then((data) => data?.id_conversation)
+        .catch((err) => {
+          throw new Error(err);
+        });
+
+      return res.status(200).send({
+        message: "OPERATION_SUCCESS",
+        id_conversation: idConversation,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getConversationWithMembersAndMessages(id, res, next) {
     try {
       let conversation = await this.DB.collection(
         views.MESSAGES_PER_CONVERSATION
-      ).findOne({ _id: id });
+      )
+        .findOne({ id_conversation: mongoose.Types.ObjectId(id) })
+        .then((data) => data)
+        .catch((err) => {
+          throw new Error(err);
+        });
 
       return res.status(200).send({
         message: "OPERATION_SUCCESS",
-        conversation,
+        conversation: conversation,
       });
     } catch (error) {
       next(error);
@@ -40,13 +79,11 @@ class ConversationService {
 
   async createConversation(body, res, next) {
     try {
-      const { conversationName, options, members } = body;
-      if (!members || !options || !members.length)
-        throw new NoDataToExecuteException();
+      const members = body;
+      if (!members || !members.length) throw new NoDataToExecuteException();
 
       const createdConversation = new Conversation({
-        conversationName,
-        options,
+        type: members.length > 2 ? "group" : "private",
       });
       const idConversation = createdConversation.id;
       const createdMembers = await this.memberService.createMembers(
@@ -56,10 +93,10 @@ class ConversationService {
 
       if (!createdMembers.length === 0) throw new NoDataToExecuteException();
       await createdConversation.save();
+
       return res.status(200).send({
         message: "OPERATION_SUCCESS",
-        conversation: createdConversation,
-        members: createdMembers,
+        idConversation,
       });
     } catch (error) {
       next(error);

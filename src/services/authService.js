@@ -12,7 +12,7 @@ import UnauthorizedException from "../exceptions/UnauthorizedException";
 import ForbiddenException from "../exceptions/ForbiddenException";
 import AccountNotVerifiedException from "../exceptions/AccountNotVerifiedException";
 import InvalidLinkVerifyMailException from "../exceptions/InvalidLinkVerifyMailException";
-import { type } from "../utils/responseTypes";
+import { type } from "../constants/responseTypes";
 
 class AuthService {
   #accessTokenExpiresIn = 86400;

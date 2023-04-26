@@ -11,18 +11,18 @@ export const createViewMessagesPerConversation = () => {
       pipeline: [
         {
           $lookup: {
-            from: "messages",
+            from: "conversation_members",
             localField: "_id",
             foreignField: "id_conversation",
-            as: "messages",
+            as: "members",
           },
         },
         {
           $lookup: {
-            from: "conversation_members",
-            localField: "messages.from_id_user",
-            foreignField: "id_user",
-            as: "members",
+            from: "messages",
+            localField: "_id",
+            foreignField: "id_conversation",
+            as: "messages",
           },
         },
         {
@@ -35,8 +35,9 @@ export const createViewMessagesPerConversation = () => {
         },
         {
           $project: {
-            _id: 1,
-            conversationName: 1,
+            id_conversation: "$_id",
+            _id: 0,
+            conversation_name: 1,
             options: 1,
             type: 1,
             "messages._id": 1,
@@ -78,35 +79,5 @@ export const createViewMessagesPerConversation = () => {
         },
       ],
     });
-    // db.createView(views.MESSAGES_PER_CONVERSATION, "conversations", [
-    //   {
-    //     $lookup: {
-    //       from: "messages",
-    //       localField: "_id",
-    //       foreignField: "id_conversation",
-    //       as: "messages",
-    //     },
-    //   },
-    //   {
-    //     $lookup: {
-    //       from: "users",
-    //       localField: "messages.from_id_user",
-    //       foreignField: "_id",
-    //       as: "members",
-    //     },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 1,
-    //       conversationName: 1,
-    //       options: 1,
-    //       "messages.message_text": 1,
-    //       "messages.created_at": 1,
-    //       "messages.from_id_user": 1,
-    //       "members.name": 1,
-    //       "members.surname": 1,
-    //     },
-    //   },
-    // ]);
   });
 };

@@ -25,6 +25,10 @@ class ConversationController {
       )
     );
   };
+  getIdPrivateConversation = (req, res, next) => {
+    let { ids } = req.query;
+    tryCatch(this.conversationService.getIdByIdsFriendAndUser(ids, res, next));
+  };
 }
 
 export default new ConversationController();

@@ -15,7 +15,7 @@ class ConversationMemberService {
   }
 
   async createMember(body) {
-    const { idConversation, idUser, role = "member" } = body;
+    const { idConversation, idUser, role } = body;
     const user = await this.userService.getUserById(idUser);
     const nickName = user.name + " " + user.surname;
 

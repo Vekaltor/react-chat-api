@@ -1,4 +1,4 @@
-import { type } from "../utils/responseTypes";
+import { type } from "../constants/responseTypes";
 
 export default class InternalServerException {
   constructor() {

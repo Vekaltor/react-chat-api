@@ -1,7 +1,6 @@
 import "./config/env.config";
 import express, { json } from "express";
 import initConnectDB from "./config/db.config";
-// import { set, connect } from "mongoose";
 import i18next, { use } from "i18next";
 import Backend from "i18next-fs-backend";
 import { LanguageDetector, handle } from "i18next-http-middleware";

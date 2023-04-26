@@ -13,17 +13,17 @@ class MessageService {
     }
   };
 
-  addNewMessage = async (data) => {
-    const { from_id_user, created_at, id_conversation, message_text } = data;
-    console.log(data);
+  addNewMessage = async (messageData, idConversation) => {
+    const { from_id_user, created_at, message_text } = messageData;
+
     try {
       const newMessage = await this.Model.create({
         created_at,
         from_id_user,
-        id_conversation,
+        id_conversation: idConversation,
         message_text,
       });
-
+      console.log(newMessage);
       newMessage.save();
     } catch (error) {
       throw new Error(error);

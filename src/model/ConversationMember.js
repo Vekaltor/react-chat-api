@@ -24,6 +24,7 @@ const conversationMemberSchema = new Schema(
     role: {
       type: String,
       enum: ["admin", "member"],
+      default: "member",
     },
   },
   {

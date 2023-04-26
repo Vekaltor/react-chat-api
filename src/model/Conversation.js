@@ -7,15 +7,18 @@ const type = {
 
 const conversationSchema = new Schema(
   {
-    conversationName: {
+    conversation_name: {
       type: String,
+      default: "",
     },
     options: {
       thema: {
         type: String,
+        default: "",
       },
       emoji: {
         type: String,
+        default: "",
       },
     },
     type: {
