@@ -36,6 +36,10 @@ With i18next messages with responses are translated on correctly language.
 ### - Authorization
 Thanks to the middleware, each request sent to the API is verified whether the user is authorized - tokens (access, refresh) are stored in httponly cookies.
 
+### - Validator (login/register)
+API has a validator implemented, uses the @hapi/joi library, the correctness of the form fields is checked with each request, 
+if an error occurs, the server returns an object with errors regarding each field.
+
 ### - Verification mail
 It allows you to send an email to the user with the given email, with a message about the activation of the account, the link includes the expiration time.
 
