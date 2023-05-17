@@ -6,10 +6,6 @@ class ConversationController {
     this.conversationService = new ConversationService();
   }
 
-  getConversations = (req, res, next) => {
-    tryCatch(this.conversationService.getConversations(req, res, next));
-  };
-
   createConversation = (req, res, next) => {
     let body = req.body;
     tryCatch(this.conversationService.createConversation(body, res, next));
@@ -25,9 +21,16 @@ class ConversationController {
       )
     );
   };
-  getIdPrivateConversation = (req, res, next) => {
-    let { ids } = req.query;
-    tryCatch(this.conversationService.getIdByIdsFriendAndUser(ids, res, next));
+
+  getIdsAndMembersPrivateConversations = (req, res, next) => {
+    let { idUser } = req.query;
+    tryCatch(
+      this.conversationService.getIdsAndMembersPrivateConversations(
+        idUser,
+        res,
+        next
+      )
+    );
   };
 }
 

@@ -13,6 +13,7 @@ import ForbiddenException from "../exceptions/ForbiddenException";
 import AccountNotVerifiedException from "../exceptions/AccountNotVerifiedException";
 import InvalidLinkVerifyMailException from "../exceptions/InvalidLinkVerifyMailException";
 import { type } from "../constants/responseTypes";
+import verifyToken from "../middlewares/verifyToken";
 
 class AuthService {
   #accessTokenExpiresIn = 86400;
@@ -20,7 +21,7 @@ class AuthService {
   #userSerivce = new UserService();
   #nodemailerService = new NodemailerService();
 
-  async login(req, res, next) {
+  login = async (req, res, next) => {
     const { email, pass } = req.body;
     const { error } = loginValidation(req.body, req.t);
     const filter = { contact: { primary_email: email } };
@@ -53,7 +54,9 @@ class AuthService {
             })
             .cookie("accessToken", accessToken, {
               maxAge: this.#accessTokenExpiresIn * 1000,
+              httpOnly: true,
               sameSite: "strict",
+              secure: true,
               path: "/",
             });
 
@@ -67,7 +70,8 @@ class AuthService {
                 surname: user.surname,
                 details: user.details,
                 contact: user.contact,
-              })
+              }),
+              { maxAge: this.#accessTokenExpiresIn * 1000 }
             )
             .send({
               message: req.t("LOGIN_SUCCESS"),
@@ -80,7 +84,7 @@ class AuthService {
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   logout = (req, res) => {
     try {

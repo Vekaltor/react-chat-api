@@ -1,53 +1,62 @@
 class UserStatusListener {
-  constructor(io) {
+  constructor(io, users, userIds) {
     this.io = io;
-    this.onlineUsers = [];
+    this.users = users;
+    this.userIds = userIds;
   }
 
   register = (socket) => {
     socket.on("user-online", (userId) => {
-      this.#addOnlineUser(userId, socket.id);
+      this.#setStatus(userId, true);
+      this.#setSocketId(userId, socket.id);
+      console.log("zalogowal sie", userId, this.users);
+      this.userIds.set(socket.id, userId);
       socket.broadcast.emit("friend-online", userId);
     });
 
-    socket.on("disconnect", () => {
-      const user = this.#removeOnlineUser(socket.id);
-
-      if (user) socket.broadcast.emit("friend-offline", user.userId);
+    socket.on("user-offline", (userId) => {
+      this.#setStatus(userId, false);
+      this.#setSocketId(userId, "");
+      console.log("wylogowal sie", userId, this.users);
+      this.userIds.delete(socket.id);
+      socket.broadcast.emit("friend-offline", userId);
     });
 
-    socket.on("user-offline", () => {
-      const user = this.#removeOnlineUser(socket.id);
-
-      if (user) this.io.emit("friend-offline", user.userId);
-    });
-
-    socket.on("get-online-friends", (friendsList) => {
+    socket.on("check-online-friends", (friendsList) => {
       const onlineFriends = this.#getOnlineFriends(friendsList);
-      socket.emit("online-friends", onlineFriends);
+      socket.emit("get-online-friends", onlineFriends);
     });
   };
 
+  disconnect = (userId, socket) => {
+    if (!userId) return;
+    this.#setStatus(userId, false);
+    this.#setSocketId(userId, "");
+    console.log("wylogowal sie", userId, this.users);
+    socket.broadcast.emit("friend-offline", userId);
+  };
+
   #getOnlineFriends(friendsList) {
-    return this.onlineUsers
-      .filter(({ userId }) => friendsList.includes(userId))
-      .map((onlineFriend) => onlineFriend.userId);
-  }
-
-  #addOnlineUser(userId, socketId) {
-    if (!this.onlineUsers.some((user) => user.userId === userId))
-      this.onlineUsers.push({ userId, socketId });
-  }
-
-  #removeOnlineUser(socketId) {
-    const user = this.onlineUsers.find((user) => user.socketId === socketId);
-
-    if (!user) return;
-    this.onlineUsers = this.onlineUsers.filter(
-      (user) => user.socketId !== socketId
+    return friendsList.filter(
+      (idFriend) =>
+        this.users.has(idFriend) && this.users.get(idFriend).isOnline
     );
+  }
 
-    return user;
+  #setSocketId(userId, socketId) {
+    const userInfo = this.users.get(userId);
+    if (userInfo) {
+      userInfo.socketId = socketId;
+      this.users.set(userId, userInfo);
+    }
+  }
+
+  #setStatus(userId, value) {
+    const userInfo = this.users.get(userId);
+    if (userInfo) {
+      userInfo.isOnline = value;
+      this.users.set(userId, userInfo);
+    }
   }
 }
 

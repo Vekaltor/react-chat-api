@@ -12,51 +12,6 @@ class ConversationService {
     this.DB = mongoose.connection;
   }
 
-  async getConversations(req, res, next) {
-    try {
-      let conversations = await Conversation.find();
-      return res
-        .status(200)
-        .send({ message: "OPERATION_SUCCESS", conversations });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getIdByIdsFriendAndUser(ids, res, next) {
-    const { idUser, idFriend } = ids;
-    try {
-      let idConversation = await this.DB.collection(
-        views.MESSAGES_PER_CONVERSATION
-      )
-        .findOne({
-          type: "private",
-          $and: [
-            {
-              "members.id_user": {
-                $all: [
-                  mongoose.Types.ObjectId(idUser),
-                  mongoose.Types.ObjectId(idFriend),
-                ],
-              },
-            },
-            { members: { $size: 2 } },
-          ],
-        })
-        .then((data) => data?.id_conversation)
-        .catch((err) => {
-          throw new Error(err);
-        });
-
-      return res.status(200).send({
-        message: "OPERATION_SUCCESS",
-        id_conversation: idConversation,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
   async getConversationWithMembersAndMessages(id, res, next) {
     try {
       let conversation = await this.DB.collection(
@@ -71,6 +26,44 @@ class ConversationService {
       return res.status(200).send({
         message: "OPERATION_SUCCESS",
         conversation: conversation,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getIdsAndMembersPrivateConversations(idUser, res, next) {
+    try {
+      let conversations = await this.DB.collection(
+        views.MESSAGES_PER_CONVERSATION
+      )
+        .find({
+          type: "private",
+          $and: [
+            {
+              "members.id_user": {
+                $in: [mongoose.Types.ObjectId(idUser)],
+              },
+            },
+            { members: { $size: 2 } },
+          ],
+        })
+        .toArray()
+        .then((data) =>
+          data.map(({ id_conversation, members }) => {
+            return {
+              id_conversation,
+              members: members.map(({ id_user }) => id_user),
+            };
+          })
+        )
+        .catch((err) => {
+          throw new Error(err);
+        });
+
+      return res.status(200).send({
+        message: "OPERATION_SUCCESS",
+        conversations,
       });
     } catch (error) {
       next(error);
@@ -103,7 +96,7 @@ class ConversationService {
     }
   }
 
-  async updateThemaConversation(thema, res, next) {
+  async setThemaConversation(thema, res, next) {
     try {
       await Conversation.findOneAndUpdate({ id }, { options: { thema } });
       return res.status(200).send({ message: "UPDATED_THEMA" });
@@ -112,7 +105,7 @@ class ConversationService {
     }
   }
 
-  async updateEmojiConversation(emoji, res, next) {
+  async setEmojiConversation(emoji, res, next) {
     try {
       await Conversation.findOneAndUpdate({ id }, { options: { emoji } });
       return res.status(200).send({ message: "UPDATED_EMOJI" });

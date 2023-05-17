@@ -23,11 +23,12 @@ export default () => {
     ConversationController.getConversationWithMembersAndMessages
   );
 
-  //GET /idConversation
+  //GET /privateConversations
+  // params: idUser
   api.get(
-    "/idConversation",
+    "/privateConversations",
     verifyToken,
-    ConversationController.getIdPrivateConversation
+    ConversationController.getIdsAndMembersPrivateConversations
   );
 
   //POST /conversation
