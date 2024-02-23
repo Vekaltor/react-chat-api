@@ -44,7 +44,7 @@ class ConversationListener {
       console.log("Aktywnosc na: ", conversationId);
 
       this.saveMessage(message, conversationId);
-      this.#broadcastNotficationToUnactiveMembers(conversationId);
+      this.#broadcastNotficationToUnactiveMembers(conversationId, message);
 
       socket
         .to(conversationId)
@@ -52,7 +52,7 @@ class ConversationListener {
     });
 
     socket.on("check-unread-conversations", (userId) => {
-      this.#emitUnreadConversation(socket.id, userId);
+      this.#emitAllUnreadConversations(socket.id, userId);
     });
   };
 
@@ -64,7 +64,6 @@ class ConversationListener {
       const conversation = this.conversations.get(conversationId);
 
       conversation.users.forEach((user) => {
-        console.log("iser", user);
         if (user.isActive && user.userId === disconnectedUserId) {
           user.isActive = false;
         }
@@ -72,24 +71,45 @@ class ConversationListener {
     });
   };
 
-  #broadcastNotficationToUnactiveMembers(conversationId) {
+  #broadcastNotficationToUnactiveMembers(conversationId, message) {
     const unactiveMembers = this.conversations
       .get(conversationId)
       .users.filter((user) => user.isActive === false);
 
     unactiveMembers.forEach(({ userId }) => {
       const socketId = this.users.get(userId).socketId;
-      this.users.get(userId).unreadConversations.add(conversationId);
-      if (socketId) this.#emitUnreadConversation(socketId, userId);
+      const currentUnreadMessages = this.users.get(userId).unreadConversations.get(conversationId) || [];
+      this.users.get(userId).unreadConversations.set(conversationId,[...currentUnreadMessages, message]);
+      if (socketId){
+          const unreadConversation = {
+              conversationId,
+              unreadMessages: this.users.get(userId).unreadConversations.get(conversationId)
+          }
+          this.#emitUnreadConversation(socketId, userId, unreadConversation);
+      }
     });
     console.log("unactiveMembers: ", unactiveMembers);
-    console.log("conversation: ", this.conversations[conversationId]);
+    console.log("conversation: ", this.conversations.get(conversationId));
   }
 
-  #emitUnreadConversation(socketId, userId) {
+  #emitUnreadConversation(socketId, userId, unreadConversation) {
     if (!this.users.has(userId)) return;
-    const unreadConversations = [...this.users.get(userId).unreadConversations];
-    this.io.to(socketId).emit("get-unread-conversations", unreadConversations);
+    this.io.to(socketId).emit("get-unread-conversations", unreadConversation);
+  }
+
+  #emitAllUnreadConversations(socketId, userId) {
+    if (!this.users.has(userId)) return;
+    const unreadConversationsMap = this.users.get(userId).unreadConversations;
+    const unreadConversationsArray= [];
+
+    unreadConversationsMap.forEach((unreadMessages, conversationId) => {
+      unreadConversationsArray.push({
+        conversationId,
+        unreadMessages
+      });
+    });
+
+    this.io.to(socketId).emit("get-all-unread-conversations", unreadConversationsArray);
   }
 
   #createConversationRoom(conversationId) {

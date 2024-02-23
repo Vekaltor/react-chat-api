@@ -57,7 +57,7 @@ export class ServerSocket {
     if (!this.users.has(userId))
       this.users.set(userId, {
         isOnline: true,
-        unreadConversations: new Set(),
+        unreadConversations: new Map(),
         conversationIds: new Set(),
       });
   };
