@@ -116,7 +116,6 @@ class FriendshipService {
     async getDiscoverableUsers(req, res) {
         const currentUser = req.user;
 
-        // Pobierz wszystkie friendships użytkownika
         const existingFriendships = await Friendship.find({
             $or: [
                 { id_user_request: currentUser._id },
@@ -124,7 +123,6 @@ class FriendshipService {
             ]
         });
 
-        // Wyciągnij ID wszystkich użytkowników którzy są już połączeni
         const connectedUserIds = [
             currentUser._id,
             ...existingFriendships.map(f =>
@@ -136,7 +134,7 @@ class FriendshipService {
 
         const users = await User.find({
             _id: { $nin: connectedUserIds }
-        }).select('_id name surname avatar');
+        }).select('id name surname avatar');
 
         res.json({
             success: true,
@@ -150,7 +148,7 @@ class FriendshipService {
         const invites = await Friendship.find({
             id_user_request: currentUser._id,
             is_accepted: false
-        }).populate('id_user_accept', 'name username avatar email');
+        }).populate('id_user_accept', 'id name surname avatar');
 
         res.json({
             success: true,
@@ -164,7 +162,7 @@ class FriendshipService {
         const invites = await Friendship.find({
             id_user_accept: currentUser._id,
             is_accepted: false
-        }).populate('id_user_request', 'name username avatar email');
+        }).populate('id_user_request', 'id name surname avatar');
 
         res.json({
             success: true,
@@ -191,8 +189,8 @@ class FriendshipService {
                     { id_user_accept: userIdToCheck }
                 ]
             })
-                .populate('id_user_request', '_id name username avatar email')
-                .populate('id_user_accept', '_id name username avatar email');
+                .populate('id_user_request', 'id name username avatar email')
+                .populate('id_user_accept', 'id name username avatar email');
 
             const friends = friendships.map(friendship => {
                 const isCurrentUserRequester = friendship.id_user_request._id.toString() === userIdToCheck.toString();
