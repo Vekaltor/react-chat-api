@@ -9,17 +9,8 @@ export default () => {
   //GET /users
   api.get("/users", verifyToken, UserController.getAllUsers);
 
-  //POST /friends
-  api.post("/friends", verifyToken, UserController.getFriends);
-
   //PUT /friends
-  api.put("/friends", verifyToken, UserController.addFriends);
-
-  //GET /available-users
-  api.get("/available-users", verifyToken, UserController.getAvailableUsers);
-
-  //DELETE /friends/reject
-  api.delete("/friends/reject", verifyToken, UserController.rejectFriendship);
+  // api.put("/friends", verifyToken, UserController.addFriends);
 
   //GET /conversation
   //params: idConversation

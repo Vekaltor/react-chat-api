@@ -13,6 +13,7 @@ import {ServerSocket} from "./socket";
 //Imports Routes
 import authentication from "./routes/auth";
 import user from "./routes/user";
+import friendship from "./routes/friendship";
 
 use(Backend)
     .use(LanguageDetector)
@@ -34,6 +35,7 @@ app.use(cors(corsOptions));
 
 app.use("/api", authentication());
 app.use("/api", user());
+app.use("/api", friendship());
 
 app.use(errorHandler);
 

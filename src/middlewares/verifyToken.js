@@ -4,18 +4,31 @@ import UnauthorizedException from "../exceptions/UnauthorizedException";
 
 const verifyToken = (req, res, next) => {
   const token = req.cookies.accessToken;
-  if (token == null) throw new UnauthorizedException();
 
-  try {
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      if (err) throw new ForbiddenException();
-
-      req.user = user;
-      next();
+  if (token == null) {
+    return res.status(401).json({
+      success: false,
+      error: 'No access token provided'
     });
-  } catch (error) {
-    res.clearCookie("accessToken");
   }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      res.clearCookie("accessToken");
+      return res.status(403).json({
+        success: false,
+        error: 'Invalid or expired token'
+      });
+    }
+
+    req.user = {
+      ...req.cookies.user,
+      _id: decoded.idUser,
+      id: decoded.idUser
+    };
+
+    next();
+  });
 };
 
 export default verifyToken;
