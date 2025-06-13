@@ -35,7 +35,7 @@ app.use(cors(corsOptions));
 
 app.use("/api", authentication());
 app.use("/api", user());
-app.use("/api", friendship());
+app.use("/api/friends", friendship());
 
 app.use(errorHandler);
 

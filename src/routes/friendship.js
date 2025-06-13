@@ -7,10 +7,10 @@ export default () => {
     const api = express();
 
     // Pobranie listy znajomych
-    api.get("/friends", verifyToken, UserController.getFriends);
+    api.get("/", verifyToken, UserController.getFriends);
 
     // Wysyłanie zaproszenia do znajomych
-    api.post('/invite/:userId', verifyToken, FriendshipController.sendInvite);
+    api.post('/invite/:friendId', verifyToken, FriendshipController.sendInvite);
 
     // Odrzucanie zaproszenia
     api.post('/reject/:inviteId', verifyToken, FriendshipController.rejectInvite);

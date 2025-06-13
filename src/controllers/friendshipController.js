@@ -3,7 +3,7 @@ import FriendshipService from "../services/friendshipService";
 
 class FriendshipController {
     constructor() {
-        this.friendshipService = FriendshipService;
+        this.friendshipService = new FriendshipService();
     }
 
     // Wysyłanie zaproszenia do znajomych

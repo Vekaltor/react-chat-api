@@ -5,29 +5,54 @@ import BadRequestError from "../exceptions/BadRequestError";
 
 class FriendshipService {
     async sendInvite(req, res) {
-        const {userId} = req.params;
+        const { friendId } = req.params;
         const currentUser = req.user;
 
-        const targetUser = await User.findById(userId);
+        if (!friendId) {
+            throw new BadRequestError('friendId jest wymagane');
+        }
+
+        const targetUser = await User.findById(friendId);
         if (!targetUser) {
             throw new NotFoundError('Użytkownik nie został znaleziony');
         }
 
-        const existingInvite = await Friendship.findOne({
+        if (currentUser._id.toString() === friendId) {
+            throw new BadRequestError('Nie możesz dodać siebie jako znajomego');
+        }
+
+        // Sprawdź czy już istnieje relacja
+        const existingFriendship = await Friendship.findOne({
             $or: [
-                {sender: currentUser._id, receiver: userId},
-                {sender: userId, receiver: currentUser._id}
+                { id_user_request: currentUser._id, id_user_accept: friendId },
+                { id_user_request: friendId, id_user_accept: currentUser._id }
             ]
         });
 
-        if (existingInvite) {
-            throw new BadRequestError('Zaproszenie już istnieje');
+        if (existingFriendship) {
+            if (existingFriendship.is_accepted) {
+                throw new BadRequestError('Już jesteście znajomymi');
+            } else {
+                // Jeśli istnieje pending request i current user jest odbiorcą, zaakceptuj
+                if (existingFriendship.id_user_accept.toString() === currentUser._id.toString()) {
+                    existingFriendship.is_accepted = true;
+                    await existingFriendship.save();
+
+                    return res.status(200).json({
+                        success: true,
+                        message: 'Zaproszenie zostało zaakceptowane'
+                    });
+                } else {
+                    throw new BadRequestError('Zaproszenie już zostało wysłane');
+                }
+            }
         }
 
+        // Utwórz nowe zaproszenie
         const friendship = new Friendship({
-            sender: currentUser._id,
-            receiver: userId,
-            status: 'pending'
+            id_user_request: currentUser._id,
+            id_user_accept: friendId,
+            is_accepted: false
         });
 
         await friendship.save();
@@ -40,21 +65,24 @@ class FriendshipService {
     }
 
     async rejectInvite(req, res) {
-        const {inviteId} = req.params;
+        const { friendId } = req.body;
         const currentUser = req.user;
 
-        const invite = await Friendship.findOne({
-            _id: inviteId,
-            receiver: currentUser._id,
-            status: 'pending'
-        });
-
-        if (!invite) {
-            throw new NotFoundError('Zaproszenie nie zostało znalezione');
+        if (!friendId) {
+            throw new BadRequestError('friendId jest wymagane');
         }
 
-        invite.status = 'rejected';
-        await invite.save();
+        // Znajdź i usuń friendship
+        const friendship = await Friendship.findOneAndDelete({
+            $or: [
+                { id_user_request: currentUser._id, id_user_accept: friendId },
+                { id_user_request: friendId, id_user_accept: currentUser._id }
+            ]
+        });
+
+        if (!friendship) {
+            throw new NotFoundError('Zaproszenie nie zostało znalezione');
+        }
 
         res.json({
             success: true,
@@ -63,20 +91,20 @@ class FriendshipService {
     }
 
     async acceptInvite(req, res) {
-        const {inviteId} = req.params;
+        const { inviteId } = req.params;
         const currentUser = req.user;
 
         const invite = await Friendship.findOne({
             _id: inviteId,
-            receiver: currentUser._id,
-            status: 'pending'
+            id_user_accept: currentUser._id,
+            is_accepted: false
         });
 
         if (!invite) {
             throw new NotFoundError('Zaproszenie nie zostało znalezione');
         }
 
-        invite.status = 'accepted';
+        invite.is_accepted = true;
         await invite.save();
 
         res.json({
@@ -88,29 +116,31 @@ class FriendshipService {
     async getDiscoverableUsers(req, res) {
         const currentUser = req.user;
 
+        // Pobierz wszystkie friendships użytkownika
         const existingFriendships = await Friendship.find({
             $or: [
-                {sender: currentUser._id},
-                {receiver: currentUser._id}
+                { id_user_request: currentUser._id },
+                { id_user_accept: currentUser._id }
             ]
         });
 
-        const excludedUserIds = [
+        // Wyciągnij ID wszystkich użytkowników którzy są już połączeni
+        const connectedUserIds = [
             currentUser._id,
             ...existingFriendships.map(f =>
-                f.sender.toString() === currentUser._id.toString()
-                    ? f.receiver
-                    : f.sender
+                f.id_user_request.toString() === currentUser._id.toString()
+                    ? f.id_user_accept
+                    : f.id_user_request
             )
         ];
 
         const users = await User.find({
-            _id: {$nin: excludedUserIds}
-        }).select('-password');
+            _id: { $nin: connectedUserIds }
+        }).select('_id name surname avatar');
 
         res.json({
             success: true,
-            data: users
+            users: users
         });
     }
 
@@ -118,13 +148,13 @@ class FriendshipService {
         const currentUser = req.user;
 
         const invites = await Friendship.find({
-            sender: currentUser._id,
-            status: 'pending'
-        }).populate('receiver', 'username email');
+            id_user_request: currentUser._id,
+            is_accepted: false
+        }).populate('id_user_accept', 'name username avatar email');
 
         res.json({
             success: true,
-            data: invites
+            users: invites
         });
     }
 
@@ -132,80 +162,54 @@ class FriendshipService {
         const currentUser = req.user;
 
         const invites = await Friendship.find({
-            receiver: currentUser._id,
-            status: 'pending'
-        }).populate('sender', 'username email');
+            id_user_accept: currentUser._id,
+            is_accepted: false
+        }).populate('id_user_request', 'name username avatar email');
 
         res.json({
             success: true,
-            data: invites
+            users: invites
         });
     }
 
-    // async getAllFriendsForUser(req, res) {
-    //     const { idUser } = req.body;
-    //     let arrayOfFriends = await Friendship.find({
-    //         $and: [
-    //             { is_accepted: true },
-    //             { $or: [{ id_user_accept: idUser }, { id_user_request: idUser }] },
-    //         ],
-    //     })
-    //         .populate({
-    //             path: "id_user_accept id_user_request",
-    //             select: "_id name surname",
-    //         })
-    //         .sort("asc")
-    //         .exec()
-    //         .then((docs) => {
-    //             let friends = [];
-    //             docs.forEach((doc) => {
-    //                 if (doc.id_user_request._id === idUser) {
-    //                     friends.push(doc.id_user_accept);
-    //                 } else {
-    //                     friends.push(doc.id_user_request);
-    //                 }
-    //             });
-    //             return friends;
-    //         });
-    //
-    //     return res.status(200).send({ friends: arrayOfFriends });
-    // }
-
     async getAllFriendsForUser(req, res) {
         try {
-            const currentUser = req.user;
-            if (!currentUser) {
-                return res.status(401).json({
+            const { userId } = req.body;
+            const userIdToCheck = userId || req.user._id;
+
+            if (!userIdToCheck) {
+                return res.status(400).json({
                     success: false,
-                    error: 'User not authenticated'
+                    message: 'User ID jest wymagane'
                 });
             }
 
             const friendships = await Friendship.find({
                 is_accepted: true,
                 $or: [
-                    { id_user_request: currentUser._id },
-                    { id_user_accept: currentUser._id }
+                    { id_user_request: userIdToCheck },
+                    { id_user_accept: userIdToCheck }
                 ]
             })
-                .populate('id_user_request', '_id name surname photo')
-                .populate('id_user_accept', '_id name surname photo');
+                .populate('id_user_request', '_id name username avatar email')
+                .populate('id_user_accept', '_id name username avatar email');
 
             const friends = friendships.map(friendship => {
-                const isCurrentUserRequester = friendship.id_user_request._id.toString() === currentUser._id.toString();
+                const isCurrentUserRequester = friendship.id_user_request._id.toString() === userIdToCheck.toString();
                 const friend = isCurrentUserRequester ? friendship.id_user_accept : friendship.id_user_request;
 
                 return {
                     _id: friend._id,
                     name: friend.name,
-                    surname: friend.surname,
-                    photo: friend.photo || undefined
+                    username: friend.username,
+                    avatar: friend.avatar || undefined,
+                    email: friend.email
                 };
             });
 
             res.json({
                 success: true,
-                data: friends,
+                friends: friends,
                 count: friends.length
             });
 
@@ -213,7 +217,7 @@ class FriendshipService {
             console.error('Error in getAllFriendsForUser:', error);
             res.status(500).json({
                 success: false,
-                error: error.message
+                message: error.message
             });
         }
     }
