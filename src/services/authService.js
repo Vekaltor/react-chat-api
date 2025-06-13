@@ -152,7 +152,7 @@ class AuthService {
             const message = `
                 <p>Thank you for registering int our application. Just one more steps ...</p>
                 <p>To activate your account please <b>follow</b> this link: </p>
-                <a target="_" href="${process.env.DOMAIN}/verify/${user._id}/${token.token}">Activate Link</a>
+                <a target="_" href="${process.env.DOMAIN}:3000/verify/${user._id}/${token.token}">Activate Link</a>
                 <p>Cheers,</p><p>Your application team</p>
             `;
 
