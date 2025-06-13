@@ -5,27 +5,27 @@ import BadRequestError from "../exceptions/BadRequestError";
 
 class FriendshipService {
     async sendInvite(req, res) {
-        const { friendId } = req.params;
+        const { userId } = req.params;
         const currentUser = req.user;
 
-        if (!friendId) {
-            throw new BadRequestError('friendId jest wymagane');
+        if (!userId) {
+            throw new BadRequestError('userId jest wymagane');
         }
 
-        const targetUser = await User.findById(friendId);
+        const targetUser = await User.findById(userId);
         if (!targetUser) {
             throw new NotFoundError('Użytkownik nie został znaleziony');
         }
 
-        if (currentUser._id.toString() === friendId) {
+        if (currentUser._id.toString() === userId) {
             throw new BadRequestError('Nie możesz dodać siebie jako znajomego');
         }
 
         // Sprawdź czy już istnieje relacja
         const existingFriendship = await Friendship.findOne({
             $or: [
-                { id_user_request: currentUser._id, id_user_accept: friendId },
-                { id_user_request: friendId, id_user_accept: currentUser._id }
+                { id_user_request: currentUser._id, id_user_accept: userId },
+                { id_user_request: userId, id_user_accept: currentUser._id }
             ]
         });
 
@@ -51,7 +51,7 @@ class FriendshipService {
         // Utwórz nowe zaproszenie
         const friendship = new Friendship({
             id_user_request: currentUser._id,
-            id_user_accept: friendId,
+            id_user_accept: userId,
             is_accepted: false
         });
 
@@ -65,19 +65,14 @@ class FriendshipService {
     }
 
     async rejectInvite(req, res) {
-        const { friendId } = req.body;
-        const currentUser = req.user;
+        const { inviteId } = req.params;
 
-        if (!friendId) {
-            throw new BadRequestError('friendId jest wymagane');
+        if (!inviteId) {
+            throw new BadRequestError('inviteId jest wymagane');
         }
 
-        // Znajdź i usuń friendship
         const friendship = await Friendship.findOneAndDelete({
-            $or: [
-                { id_user_request: currentUser._id, id_user_accept: friendId },
-                { id_user_request: friendId, id_user_accept: currentUser._id }
-            ]
+            _id: inviteId,
         });
 
         if (!friendship) {
