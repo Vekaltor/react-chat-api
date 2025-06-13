@@ -15,6 +15,12 @@ export default () => {
   //PUT /friends
   api.put("/friends", verifyToken, UserController.addFriends);
 
+  //GET /available-users
+  api.get("/available-users", verifyToken, UserController.getAvailableUsers);
+
+  //DELETE /friends/reject
+  api.delete("/friends/reject", verifyToken, UserController.rejectFriendship);
+
   //GET /conversation
   //params: idConversation
   api.get(

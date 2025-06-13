@@ -18,6 +18,14 @@ class UserController {
   addFriends = (req, res, next) => {
     tryCatch(this.friendshipService.createFriendship(req, res, next));
   };
+
+  getAvailableUsers = (req, res, next) => {
+    tryCatch(this.friendshipService.getAvailableUsers(req, res, next));
+  };
+
+  rejectFriendship = (req, res, next) => {
+    tryCatch(this.friendshipService.rejectFriendship(req, res, next));
+  };
 }
 
 export default new UserController();
