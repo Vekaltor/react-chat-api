@@ -41,7 +41,7 @@ export default class NodemailerService {
 
   async checkExistsToken(token) {
     try {
-      return (await TokenEmail.findOne({ token })) ? true : false;
+      return !!(await TokenEmail.findOne({token}));
     } catch (error) {
       console.log("CheckExistsTokenEmail error", error);
     }

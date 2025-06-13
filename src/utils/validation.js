@@ -56,4 +56,4 @@ const loginValidation = (data, translator) => {
   return loginSchema.validate(data);
 };
 
-module.exports = { registerValidation, loginValidation };
+export { registerValidation, loginValidation };

@@ -23,9 +23,7 @@ class UserService {
   };
 
   #isEmailBusy = async (email) => {
-    return (await User.findOne({ contact: { primary_email: email } }))
-      ? true
-      : false;
+    return !!(await User.findOne({contact: {primary_email: email}}));
   };
 
   existsUser = async (email) => {
